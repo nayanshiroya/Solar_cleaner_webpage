@@ -1,9 +1,14 @@
+// WebSocket connection
+let ws;
+let wsConnected = false;
+let reconnectInterval;
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     loadSavedConfigurations();
     
     // Initialize WebSocket connection
-    initializeSocket();
+    initWebSocket();
     
     // Attach event listeners to all test buttons
     const testButtons = document.querySelectorAll('.test-btn');
@@ -32,12 +37,138 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Initialize WebSocket connection
-function initializeSocket() {
-    // You can configure the WebSocket URL here
-    // socketManager.url = 'ws://your-server-url:port';
+function initWebSocket() {
+    const wsUrl = `ws://${window.location.hostname}/ws`;
     
-    // Connect to WebSocket
-    socketManager.connect();
+    try {
+        ws = new WebSocket(wsUrl);
+        
+        ws.onopen = function() {
+            console.log('WebSocket connected');
+            wsConnected = true;
+            updateConnectionStatus(true);
+            clearInterval(reconnectInterval);
+        };
+        
+        ws.onclose = function() {
+            console.log('WebSocket disconnected');
+            wsConnected = false;
+            updateConnectionStatus(false);
+            // Attempt to reconnect every 3 seconds
+            reconnectInterval = setInterval(initWebSocket, 3000);
+        };
+        
+        ws.onerror = function(error) {
+            console.error('WebSocket error:', error);
+            wsConnected = false;
+            updateConnectionStatus(false);
+        };
+        
+        ws.onmessage = function(event) {
+            handleMessage(event.data);
+        };
+        
+    } catch (error) {
+        console.error('Failed to create WebSocket:', error);
+        wsConnected = false;
+        updateConnectionStatus(false);
+        reconnectInterval = setInterval(initWebSocket, 3000);
+    }
+}
+
+// Send JSON message via WebSocket
+function sendMessage(data) {
+    if (wsConnected && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(data));
+        console.log('Sent:', data);
+        return true;
+    } else {
+        console.error('WebSocket not connected');
+        alert('Not connected to device. Please wait...');
+        return false;
+    }
+}
+
+// Handle incoming messages
+function handleMessage(data) {
+    try {
+        const msg = JSON.parse(data);
+        console.log('Received:', msg);
+        
+        // Display socket data
+        displaySocketData(msg);
+        
+        // Handle different message types
+        if (msg.type) {
+            switch(msg.type) {
+                case 'response':
+                case 'data':
+                case 'status':
+                    displaySocketData(msg);
+                    break;
+                default:
+                    displaySocketData(msg);
+            }
+        }
+    } catch (error) {
+        console.error('Error parsing message:', error);
+        displaySocketData(data);
+    }
+}
+
+// Display socket data
+function displaySocketData(data) {
+    const socketDiv = document.querySelector('.tax_form_the_socket');
+    if (socketDiv) {
+        try {
+            const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+            
+            // Show different messages based on message type
+            let message = 'Data received from server';
+            if (parsedData.type) {
+                switch(parsedData.type) {
+                    case 'response':
+                        message = 'Command executed successfully';
+                        break;
+                    case 'error':
+                        message = 'Error from server';
+                        break;
+                    case 'status':
+                        message = 'Status update received';
+                        break;
+                    case 'ack':
+                        message = 'Data acknowledged by server';
+                        break;
+                    default:
+                        message = 'Message received from server';
+                }
+            }
+            socketDiv.textContent = message;
+        } catch (error) {
+            socketDiv.textContent = 'Data received from server';
+        }
+    }
+}
+
+// Update connection status UI
+function updateConnectionStatus(connected) {
+    const connectionStatus = document.getElementById('connectionStatus');
+    
+    if (connected) {
+        connectionStatus.textContent = 'Connected';
+        connectionStatus.className = 'status-value connected';
+        const socketDiv = document.querySelector('.tax_form_the_socket');
+        if (socketDiv) {
+            socketDiv.textContent = 'Connected to device';
+        }
+    } else {
+        connectionStatus.textContent = 'Disconnected';
+        connectionStatus.className = 'status-value disconnected';
+        const socketDiv = document.querySelector('.tax_form_the_socket');
+        if (socketDiv) {
+            socketDiv.textContent = 'Disconnected from device';
+        }
+    }
 }
 
 // Handle emergency button click
@@ -48,7 +179,7 @@ function handleEmergency() {
         timestamp: new Date().toISOString()
     };
     
-    if (socketManager.send(data)) {
+    if (sendMessage(data)) {
         showMessage('Emergency stop signal sent!', 'success');
         console.log('Emergency stop sent:', data);
     }
@@ -79,7 +210,7 @@ function handleRunCycle() {
         timestamp: new Date().toISOString()
     };
     
-    if (socketManager.send(data)) {
+    if (sendMessage(data)) {
         showMessage(`Running cycle for "${selectedName}"`, 'success');
         console.log('Run cycle sent:', data);
     }
@@ -113,7 +244,7 @@ function handleTest(rowIndex) {
         timestamp: new Date().toISOString()
     };
     
-    if (socketManager.send(jsonData)) {
+    if (sendMessage(jsonData)) {
         console.log('Test Data (Row ' + (rowIndex + 1) + '):', JSON.stringify(jsonData));
         showMessage(`Row ${rowIndex + 1} - Testing Brush ${brush} with ${cycles} cycles`, 'success');
     }
@@ -162,7 +293,7 @@ function handleSave() {
     };
     
     // Only show success if message was actually sent
-    if (socketManager.send(socketData)) {
+    if (sendMessage(socketData)) {
         showMessage(`Configuration "${configName}" saved and sent to server!`, 'success');
         // Clear the name input only on success
         document.getElementById('configName').value = '';
@@ -266,3 +397,10 @@ function showMessage(message, type) {
     }, 3000);
 }
 
+// Clean up on page unload
+window.addEventListener('beforeunload', function() {
+    if (ws) {
+        ws.close();
+    }
+    clearInterval(reconnectInterval);
+});
