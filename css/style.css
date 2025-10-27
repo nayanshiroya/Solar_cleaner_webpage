@@ -10,6 +10,12 @@ body {
     min-height: 100vh;
     padding: 20px;
     color: #dc3545;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 .container {
@@ -31,7 +37,9 @@ header {
 
 #status_section{
     display: flex;
-   justify-content: space-between;
+    /* flex-direction: column;  */
+    justify-content: space-between;
+    gap: 10px;
 }
 
 .title {
@@ -68,9 +76,15 @@ header {
     font-weight: bold;
     text-transform: uppercase;
     text-align: center;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     background-color: #f8f9fa;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .disconnected {
