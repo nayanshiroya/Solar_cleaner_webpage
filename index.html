@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forthtech - Solar Cleaner Brush Control</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1 class="title">Forthtech</h1>
+
+        </header>
+
+        <main>
+            <section class="section" id="status_section">
+                <div class="status">
+                    <span class="status-label">Status:</span>
+                    <span id="connectionStatus" class="status-value disconnected">Disconnected</span>
+                </div>
+                <span class="tax_form_the_socket">tax form the socket</span>
+            </section>
+
+            <div class="danger_zone">
+
+                <button class="danger_button">Danger Zone</button>
+            </div>
+
+
+            <section class="section">
+                <h2>Saved Configurations</h2>
+                <div class="saved-data-section">
+                    <label for="savedNames">Select Saved Configuration:</label>
+                    <select id="savedNames" class="form-control">
+                        <option value="">-- Select a saved configuration --</option>
+                    </select>
+
+                    <div id="savedDataDisplay" class="saved-data-display" style="display: none;">
+                        <h3>Configuration Data:</h3>
+                        <div id="savedDataContent"></div>
+                    </div>
+
+                    <button id="runCycleBtn" class="run-cycle-btn" type="button" style="display: none;">Run Present
+                        Cycle With Full</button>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>Manual Control</h2>
+                <div class="manual-control-section">
+                    <div id="controlRows" class="control-rows">
+                        <div class="control-row">
+                            <div class="control_row_item">
+                                <label>Brush:</label>
+                                <select class="brush-selector">
+                                    <option value="none">None</option>
+                                    <option value="brush1">Brush 1</option>
+                                    <option value="brush2">Brush 2</option>
+                                    <option value="brush3">Brush 3</option>
+                                </select>
+                            </div>
+                            <div class="control_row_item">
+                                <label>Cycles:</label>
+                                <input type="number" class="cycle-input" min="0" value="0" placeholder="Enter cycles">
+                            </div>
+                            <button class="test-btn" type="button">Test</button>
+                        </div>
+
+                        <div class="control-row">
+                            <div class="control_row_item">
+                                <label>Brush:</label>
+                                <select class="brush-selector">
+                                    <option value="none">None</option>
+                                    <option value="brush1">Brush 1</option>
+                                    <option value="brush2">Brush 2</option>
+                                    <option value="brush3">Brush 3</option>
+                                </select>
+                            </div>
+                            <div class="control_row_item">
+                                <label>Cycles:</label>
+                                <input type="number" class="cycle-input" min="0" value="0" placeholder="Enter cycles">
+                            </div>
+                            <button class="test-btn" type="button">Test</button>
+                        </div>
+                        <div class="control-row">
+                            <div class="control_row_item">
+                                <label>Brush:</label>
+                                <select class="brush-selector">
+                                    <option value="none">None</option>
+                                    <option value="brush1">Brush 1</option>
+                                    <option value="brush2">Brush 2</option>
+                                    <option value="brush3">Brush 3</option>
+                                </select>
+                            </div>
+                            <div class="control_row_item">
+                                <label>Cycles:</label>
+                                <input type="number" class="cycle-input" min="0" value="0" placeholder="Enter cycles">
+                            </div>
+                            <button class="test-btn" type="button">Test</button>
+                        </div>
+
+                        <div class="control-row">
+                            <div class="control_row_item">
+                                <label>Brush:</label>
+                                <select class="brush-selector">
+                                    <option value="none">None</option>
+                                    <option value="brush1">Brush 1</option>
+                                    <option value="brush2">Brush 2</option>
+                                    <option value="brush3">Brush 3</option>
+                                </select>
+                            </div>
+                            <div class="control_row_item">
+                                <label>Cycles:</label>
+                                <input type="number" class="cycle-input" min="0" value="0" placeholder="Enter cycles">
+                            </div>
+                            <button class="test-btn" type="button">Test</button>
+                        </div>
+
+                        <div class="control-row">
+                            <div class="control_row_item">
+                                <label>Brush:</label>
+                                <select class="brush-selector">
+                                    <option value="none">None</option>
+                                    <option value="brush1">Brush 1</option>
+                                    <option value="brush2">Brush 2</option>
+                                    <option value="brush3">Brush 3</option>
+                                </select>
+                            </div>
+                            <div class="control_row_item">
+                                <label>Cycles:</label>
+                                <input type="number" class="cycle-input" min="0" value="0" placeholder="Enter cycles">
+                            </div>
+                            <button class="test-btn" type="button">Test</button>
+                        </div>
+                    </div>
+
+                    <div class="save-section">
+                        <label for="configName">Configuration Name:</label>
+                        <input type="text" id="configName" placeholder="Enter name to save this configuration"
+                            class="name-input">
+                        <button id="saveBtn" class="save-btn" type="button">Save Configuration</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>
