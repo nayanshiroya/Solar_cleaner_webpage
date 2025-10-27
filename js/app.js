@@ -69,16 +69,18 @@ function handleSave() {
         const brush = brushSelector.value;
         const cycles = parseInt(cycleInput.value) || 0;
         
-        configData.push({
-            brushName: brush,
-            cycleCount: cycles
-        });
+        // Only save if BOTH brush is not 'none' AND cycles > 0
+        if (brush !== 'none' && cycles > 0) {
+            configData.push({
+                brushName: brush,
+                cycleCount: cycles
+            });
+        }
     });
     
-    // Check if there's at least one row with data
-    const hasData = configData.some(row => row.brushName !== 'none' && row.cycleCount > 0);
-    if (!hasData) {
-        showMessage('Please configure at least one row before saving', 'error');
+    // Check if there's at least one row with valid data
+    if (configData.length === 0) {
+        showMessage('Please configure at least one row with both brush and cycles before saving', 'error');
         return;
     }
     
@@ -163,26 +165,31 @@ function loadSavedConfigurations() {
     updateSavedNamesSelector();
 }
 
-// Show message to user
+// Show toast notification to user
 function showMessage(message, type) {
     // Remove any existing messages
     const existingMessage = document.querySelector('.message');
     if (existingMessage) {
-        existingMessage.remove();
+        existingMessage.classList.add('toast-exit');
+        setTimeout(() => {
+            existingMessage.remove();
+        }, 300);
     }
     
-    // Create new message element
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${type}`;
-    messageDiv.textContent = message;
+    // Create new toast element
+    const toastDiv = document.createElement('div');
+    toastDiv.className = `message ${type}`;
+    toastDiv.textContent = message;
     
-    // Insert at the top of main
-    const main = document.querySelector('main');
-    main.insertBefore(messageDiv, main.firstChild);
+    // Append to body (for fixed positioning)
+    document.body.appendChild(toastDiv);
     
-    // Auto remove after 3 seconds
+    // Auto remove after 3 seconds with exit animation
     setTimeout(() => {
-        messageDiv.remove();
+        toastDiv.classList.add('toast-exit');
+        setTimeout(() => {
+            toastDiv.remove();
+        }, 300);
     }, 3000);
 }
 
