@@ -2,6 +2,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     loadSavedConfigurations();
     
+    // Initialize WebSocket connection
+    initializeSocket();
+    
     // Attach event listeners to all test buttons
     const testButtons = document.querySelectorAll('.test-btn');
     testButtons.forEach((btn, index) => {
@@ -16,9 +19,71 @@ document.addEventListener('DOMContentLoaded', function() {
     const savedNames = document.getElementById('savedNames');
     savedNames.addEventListener('change', displaySavedData);
     
+    // Attach event listener to run cycle button
+    const runCycleBtn = document.getElementById('runCycleBtn');
+    runCycleBtn.addEventListener('click', handleRunCycle);
+    
+    // Attach event listener to emergency button
+    const emergencyBtn = document.querySelector('.danger_button');
+    emergencyBtn.addEventListener('click', handleEmergency);
+    
     // Load saved configurations on page load
     updateSavedNamesSelector();
 });
+
+// Initialize WebSocket connection
+function initializeSocket() {
+    // You can configure the WebSocket URL here
+    // socketManager.url = 'ws://your-server-url:port';
+    
+    // Connect to WebSocket
+    socketManager.connect();
+}
+
+// Handle emergency button click
+function handleEmergency() {
+    const data = {
+        type: 'emergency',
+        action: 'STOP_ALL',
+        timestamp: new Date().toISOString()
+    };
+    
+    if (socketManager.send(data)) {
+        showMessage('Emergency stop signal sent!', 'success');
+        console.log('Emergency stop sent:', data);
+    }
+}
+
+// Handle run cycle button click
+function handleRunCycle() {
+    const savedNamesSelector = document.getElementById('savedNames');
+    const selectedName = savedNamesSelector.value;
+    
+    if (!selectedName) {
+        showMessage('Please select a configuration first', 'error');
+        return;
+    }
+    
+    const savedConfigs = JSON.parse(localStorage.getItem('savedConfigurations') || '{}');
+    const configData = savedConfigs[selectedName];
+    
+    if (!configData) {
+        showMessage('No configuration data found', 'error');
+        return;
+    }
+    
+    const data = {
+        type: 'run_cycle',
+        configName: selectedName,
+        configData: configData,
+        timestamp: new Date().toISOString()
+    };
+    
+    if (socketManager.send(data)) {
+        showMessage(`Running cycle for "${selectedName}"`, 'success');
+        console.log('Run cycle sent:', data);
+    }
+}
 
 // Handle test button click
 function handleTest(rowIndex) {
@@ -39,15 +104,19 @@ function handleTest(rowIndex) {
         return;
     }
     
-    // Send JSON data to console
+    // Send JSON data to socket
     const jsonData = {
+        type: 'test',
+        rowIndex: rowIndex + 1,
         brushName: brush,
-        cycleCount: cycles
+        cycleCount: cycles,
+        timestamp: new Date().toISOString()
     };
     
-    console.log('Test Data (Row ' + (rowIndex + 1) + '):', JSON.stringify(jsonData));
-    
-    showMessage(`Row ${rowIndex + 1} - Testing Brush ${brush} with ${cycles} cycles`, 'success');
+    if (socketManager.send(jsonData)) {
+        console.log('Test Data (Row ' + (rowIndex + 1) + '):', JSON.stringify(jsonData));
+        showMessage(`Row ${rowIndex + 1} - Testing Brush ${brush} with ${cycles} cycles`, 'success');
+    }
 }
 
 // Handle save button click
@@ -84,18 +153,22 @@ function handleSave() {
         return;
     }
     
-    // Save JSON data to localStorage
-    const savedConfigs = JSON.parse(localStorage.getItem('savedConfigurations') || '{}');
-    savedConfigs[configName] = configData;
-    localStorage.setItem('savedConfigurations', JSON.stringify(savedConfigs));
+    // Send to socket
+    const socketData = {
+        type: 'save_configuration',
+        configName: configName,
+        configData: configData,
+        timestamp: new Date().toISOString()
+    };
     
-    // Clear the name input
-    document.getElementById('configName').value = '';
-    
-    // Update the selector
-    updateSavedNamesSelector();
-    
-    showMessage(`Configuration "${configName}" saved successfully!`, 'success');
+    // Only show success if message was actually sent
+    if (socketManager.send(socketData)) {
+        showMessage(`Configuration "${configName}" saved and sent to server!`, 'success');
+        // Clear the name input only on success
+        document.getElementById('configName').value = '';
+    } else {
+        showMessage('Failed to send configuration to server. Please check connection.', 'error');
+    }
 }
 
 // Update saved names selector
